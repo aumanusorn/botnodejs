@@ -69,6 +69,11 @@ node_modules/
 # test file
 test.js
 test2.js
+soappr.js
+register-user-citizen-id.js
 
 # service account
 pclinechatbot-7c92ceaca788.json
+
+#nodemon
+nodemon.js

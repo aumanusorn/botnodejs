@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blood Plus</title>
+  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <style media="screen">
+    body {
+      background: #ECEFF1;
+      color: rgba(0, 0, 0, 0.87);
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    #message {
+      background: white;
+      max-width: 360px;
+      margin: 100px auto 16px;
+      padding: 32px 24px;
+      border-radius: 3px;
+    }
+
+    #message h2 {
+      color: #ffa100;
+      font-weight: bold;
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+
+    #message h1 {
+      font-size: 22px;
+      font-weight: 300;
+      color: rgba(0, 0, 0, 0.6);
+      margin: 0 0 16px;
+    }
+
+    #message p {
+      line-height: 140%;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+
+    #message a {
+      display: block;
+      text-align: center;
+      background: #039be5;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: white;
+      padding: 16px;
+      border-radius: 4px;
+    }
+
+    #message,
+    #message a {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    }
+
+    #load {
+      color: rgba(0, 0, 0, 0.4);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+
+      body,
+      #message {
+        margin-top: 0;
+        background: white;
+        box-shadow: none;
+      }
+
+      body {
+        border-top: 16px solid #ffa100;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+
+    const apiEndpoint = 'https://e47df4be04a0.ngrok.io';
+
+
+    async function loadData(pf) {
+      try {
+        const lineId = pf.userId;
+        const res = await axios.get(`${apiEndpoint}/api/history?uid=${lineId}`);
+        console.log('res', res);
+        var table = '<table>';
+        res.data.forEach(docInfo => {
+          const text = `${docInfo.name} ขอบริจาคเลือดกรุ๊ป ${docInfo.bloodtype} จังหวัด ${docInfo.province} ติดต่อ ${docInfo.mobile}`;
+          console.log('text', text);
+          table = table + `<tr>
+                <td>${docInfo.name}</td>
+                <td>${docInfo.bloodtype}</td>
+                <td>${docInfo.province}</td>
+                <td><a href='#' onclick='shareTargetPicker("${text}");'>แชร์</a></td>
+                </tr>`;
+        });
+        table = table + '</table>';
+        document.getElementById('table').innerHTML = table;
+
+      } catch (error) {
+        console.log('error', error);
+      }
+    }
+
+    var liff = window['liff'];
+
+    async function shareTargetPicker(text) {
+      liff.shareTargetPicker([
+        {
+          type: "text",
+          text: text,
+        }
+      ])
+    }
+
+    function showProfile(profile) {
+      document.getElementById('name').innerText = profile.userId;
+      document.getElementById('image').src = profile.pictureUrl;
+    }
+
+    function sendMessage() {
+      liff.sendMessages({ type: 'text', text: 'test' });
+    }
+
+    function openWindow(url, external) {
+      liff.openWindow({ url, external });
+    }
+
+    function getProfile() {
+      if (liff.isInClient()) {
+        liff.getProfile()
+          .then(pf => {
+            showProfile(pf);
+            loadData(pf);
+          })
+          .catch(err => {
+            console.log('getProfile error', err);
+          });
+      } else {
+        console.log('liff.isLoggedIn()', liff.isLoggedIn());
+        if (liff.isLoggedIn()) {
+          liff
+            .getProfile()
+            .then(pf => {
+              showProfile(pf);
+              loadData(pf);
+            })
+            .catch(err => {
+              console.log('getProfile error', err);
+            });
+        } else {
+          liff.login();
+        }
+      }
+
+    }
+
+    liff.init(
+      { liffId: '1654947086-QKE5Jb5Y' },
+      () => {
+        console.log('OK');
+        getProfile();
+      },
+      () => {
+        console.log('Fail to init LIFF, please run inside LINE only');
+      },
+    );
+  </script>
+
+  <div id="name">Loading</div>
+  <image id="image" width="100px" />
+  <div id="table">[]</div>
+</body>
+
+</html>
